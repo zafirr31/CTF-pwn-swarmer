@@ -10,6 +10,10 @@ pub struct Args {
     #[structopt(short, long)]
     pub flag_format: String,
 
+    #[structopt(short, long)]
+    #[structopt(default_value = "9223372036854775808")]
+    pub timeout: u64,
+
     pub script: String,
 
     #[structopt(short, long)]
