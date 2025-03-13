@@ -82,11 +82,12 @@ async fn main() {
         if VERBOSE.load(Ordering::Relaxed) {
             println!("[VERBOSE] {}", line);
         }
-        if line.contains(flag_format) && !FLAG_GOT.load(Ordering::Relaxed) {
+        if line.contains(flag_format) {
             FLAG_GOT.store(true, Ordering::Relaxed);
             let flag_ind_start = line.find(flag_format).unwrap();
             let flag_ind_end = line.find("}").unwrap();
             println!("{}", &line[flag_ind_start..flag_ind_end+1]);
+            break;
         }
     }
 }
