@@ -7,8 +7,11 @@ pub struct Args {
     #[structopt(default_value = "5")]
     pub num_processes: u8,
 
-    #[structopt(short, long)]
-    pub flag_format: String,
+    #[structopt(short = "f", long, required_unless = "flag-format-regex")]
+    pub flag_format: Option<String>,
+
+    #[structopt(short = "r", long)]
+    pub flag_format_regex: Option<String>,
 
     #[structopt(short, long)]
     #[structopt(default_value = "9223372036854775808")]

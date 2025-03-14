@@ -8,6 +8,7 @@ use std::process::Stdio;
 use std::{thread, time};
 use std::sync::atomic::{AtomicBool, Ordering};
 use structopt::StructOpt;
+use regex::Regex;
 
 use ctf_pwn_swarmer::opts::Args;
 
@@ -63,13 +64,16 @@ async fn task_spawner(tx: mpsc::Sender<String>, script: String, num_processes: u
 #[tokio::main]
 async fn main() {
     let args = Args::from_args();
-    println!("num_processes: {:?}, flag_format: {:?}", args.num_processes, args.flag_format);
 
     let script = args.script;
     let num_processes = args.num_processes;
     let process_timeout = args.timeout;
     let verbose = args.verbose;
-    let flag_format = args.flag_format.as_str();
+    let flag_format = &args.flag_format.unwrap_or_else(|| "\0\0".to_string());
+    let flag_format_regex = &args.flag_format_regex.unwrap_or_else(|| "\0\0".to_string());
+    let re = Regex::new(flag_format_regex).expect("Invalid Regex");
+    
+    println!("num_processes: {:?}, flag_format: {:?}, flag_format_regex: {:?}", args.num_processes, flag_format, flag_format_regex);
 
     let (tx, mut rx) = mpsc::channel::<String>(100);
     
@@ -82,13 +86,20 @@ async fn main() {
         if VERBOSE.load(Ordering::Relaxed) {
             println!("[VERBOSE] {}", line);
         }
-        if line.contains(flag_format) {
+        if flag_format != "\0\0" && line.contains(flag_format) {
             FLAG_GOT.store(true, Ordering::Relaxed);
             let flag_ind_start = line.find(flag_format).unwrap();
             let flag_ind_end = line.find("}").unwrap();
             println!("{}", &line[flag_ind_start..flag_ind_end+1]);
             break;
         }
+        if flag_format_regex != "\0\0" && re.is_match(&line) {
+            FLAG_GOT.store(true, Ordering::Relaxed);
+            let flag = re.find(&line).unwrap();
+            println!("{}", flag.as_str()); 
+            break;
+        }
+
     }
 }
 
