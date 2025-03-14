@@ -48,9 +48,7 @@ async fn task_spawner(tx: mpsc::Sender<String>, script: String, num_processes: u
                 });
 
                 if let Err(_) = timeout(Duration::from_secs(process_timeout), child.wait()).await {
-                    if VERBOSE.load(Ordering::Relaxed) {
-                        println!("Timeout on task {}", curr_task_counter);
-                    }
+                    println!("Timeout on task {}", curr_task_counter);
                     child.kill().await.expect("Failed to kill process");
                 }
             });
